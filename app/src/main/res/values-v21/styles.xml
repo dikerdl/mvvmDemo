@@ -1,0 +1,11 @@
+<resources>
+
+    <style name="AppTheme.NoActionBar.TransluentBar" parent="AppTheme.NoActionBar">
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <!--内容布局是否延伸到状态栏--> <!--或者在布局中使用fitSystem-->
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
+       <!-- <item name="android:statusBarColor">@android:color/transparent</item>-->
+    </style>
+
+</resources>
