@@ -3,11 +3,14 @@
     <color name="colorPrimary">#48A9EB</color>
     <color name="colorPrimaryDark">#1780C7</color>
     <color name="colorAccent">#17C7A4</color>
-    <color name="colorWhite">#ffffff</color>
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="colorGray">#8A8A8A</color>
+    <color name="colorBlack">#000000</color>
 
 
     <color name="halfTransparent">#11000000</color>
-    <color name="partTransparent">#33000000</color>
+    <color name="partTransparent">#22000000</color>
+    <color name="lowTransparent">#33000000</color>
 
 
 </resources>

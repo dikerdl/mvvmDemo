@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/dimen_170"
+    android:orientation="vertical"
+    android:background="@drawable/round_corner_bg"
+    android:layout_margin="@dimen/dimen_5">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:id="@+id/iv_anim_pic"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dimen_95"
+            fresco:roundedCornerRadius="@dimen/dimen_3"
+            fresco:actualImageScaleType="fitCenter"
+            />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginLeft="@dimen/dimen_3"
+            android:layout_marginRight="@dimen/dimen_3"
+            android:layout_marginBottom="@dimen/dimen_no"
+            android:gravity="center_vertical"
+            android:background="@drawable/transluent_gradient">
+            <TextView
+                android:id="@+id/tv_play_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/play_icon"
+                android:textColor="@color/colorWhite"
+                android:textSize="@dimen/dimen_11"
+                android:drawablePadding="@dimen/dimen_3"
+                tools:text="213"/>
+            <TextView
+                android:id="@+id/tv_comment_time"
+                android:layout_toRightOf="@id/tv_play_time"
+                android:layout_marginLeft="@dimen/dimen_5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/msg_icon"
+                android:textColor="@color/colorWhite"
+                android:textSize="@dimen/dimen_11"
+                android:drawablePadding="@dimen/dimen_3"
+                tools:text="354"/>
+            <TextView
+                android:id="@+id/tv_vedio_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:textColor="@color/colorWhite"
+                android:textSize="@dimen/dimen_11"
+                tools:text="06:24"/>
+        </RelativeLayout>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:layout_marginTop="@dimen/dimen_5"
+        android:padding="@dimen/dimen_3"
+        android:textColor="@color/colorBlack"
+        android:textSize="@dimen/dimen_13"
+        tools:text="打开哔哩的正确方式"
+        android:gravity="left"/>
+
+    <TextView
+        android:id="@+id/tv_anim_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_5"
+        android:paddingLeft="@dimen/dimen_5"
+        android:paddingRight="@dimen/dimen_5"
+        android:drawableRight="@drawable/detail_more"
+        android:textColor="@color/colorGray"
+        android:textSize="@dimen/dimen_12"
+        tools:text="野生技术协会" />
+</LinearLayout>

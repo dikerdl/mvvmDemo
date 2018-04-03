@@ -1,9 +1,0 @@
-syntax = "proto3";
-option java_package = "com.testproto.bean";
-package bean;
-message New {
-    int32 id = 1;
-    string name = 2;
-    string title = 3;
-    repeated string imgUrls = 4;
-}
