@@ -7,7 +7,9 @@
         android:id="@+id/vp_banner"
         android:layout_width="match_parent"
         android:layout_height="110dp"
-        android:padding="@dimen/dimen_5"/>
+        android:padding="@dimen/dimen_5"
+        android:background="@color/colorWhite"
+        />
 
     <LinearLayout
         android:id="@+id/ll_indicator_dot"

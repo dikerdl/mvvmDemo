@@ -1,12 +1,14 @@
 package com.icode.jiling.na517demo_mvvm.model;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 
 /**
  * Created by jiling on 2018/4/3.
  */
 
-public class RecomendAnimModel implements Serializable {
+public class RecomendAnimModel implements Serializable,Comparable {
     private String img;
 
     private String PlayCount;
@@ -68,4 +70,12 @@ public class RecomendAnimModel implements Serializable {
         this.type = type;
     }
 
+    @Override
+    public int compareTo(@NonNull Object o) {
+        if(o instanceof RecomendAnimModel){
+            RecomendAnimModel model = (RecomendAnimModel)o;
+            return this.getContent().equals(model.getContent()) ? 0:1;
+        }
+        return 0;
+    }
 }

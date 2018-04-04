@@ -34,7 +34,11 @@ import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import okhttp3.Call;
 
@@ -61,10 +65,13 @@ public class AnimRecFragment extends Fragment {
 
     private LinearLayout mDotsLayout;
 
+    private boolean mIsLoadingMore = false;
+
     private Handler bannerHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            if(mBannerAdapter != null && msg.what == 0x160) {
+            if(mBannerAdapter != null && msg.what == 0x160 && !mSwipeLayout.isRefreshing()) {
+                mBannerAdapter.notifyDataSetChanged();
                 if (mBannerAdapter.getCount() > 1) { // 多于1个，才循环
                     int index = mBannerViewPager.getCurrentItem();
                     if(index != -1) {
@@ -91,6 +98,14 @@ public class AnimRecFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        initEvent();
+        mSwipeLayout.setRefreshing(true);
+        initData();
+    }
+
     private void initView(View view) {
         mSwipeLayout = view.findViewById(R.id.swipe_rec);
         mSwipeLayout.setColorSchemeColors(getResources().getColor(R.color.colorAccent));
@@ -108,40 +123,10 @@ public class AnimRecFragment extends Fragment {
         mRecRecyclerView.setAdapter(myRecAdapter);
     }
 
-    private void setBannerImgs() {
-        if(!mBannerLists.isEmpty()){
-            if(mDotsLayout!= null && mDotsLayout.getChildCount() > 0){
-                mDotsLayout.removeAllViews();
-            }
-            for (int i=0;i<mBannerLists.size();i++) {
-                RecBanner recBanner = mBannerLists.get(i);
-                SimpleDraweeView draweeView = new SimpleDraweeView(getContext());
-                draweeView.setImageURI( recBanner.getImgUrl());
-                mBannerImgLists.add(draweeView);
-                ImageView imageView = new ImageView(getContext());
-                if(i == 0) {
-                    imageView.setImageResource(R.drawable.banner_selected_shape);
-                }else{
-                    imageView.setImageResource(R.drawable.banner_inditor_shape);
-                }
-                imageView.setPadding(5,0,5,0);
-                mDotsLayout.addView(imageView);
-            }
-        }
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        initEvent();
-        initData();
-    }
-
     private void initData() {
-        mBannerLists.clear();
-        mBannerImgLists.clear();
-        bannerHandler.removeMessages(0x160);
-
+        if(mSwipeLayout.isRefreshing() || mIsLoadingMore){
+            bannerHandler.removeMessages(0x160);
+        }
         OkHttpUtils.get()
                 .url(Contants.BANNER)
                 .addParams("ts", System.currentTimeMillis()+"")
@@ -158,6 +143,14 @@ public class AnimRecFragment extends Fragment {
                     public void onResponse(String response, int id) {
                         JSONObject result = (JSONObject) JSON.parse(response);
                         JSONArray recArray = result.getJSONArray("data");
+
+                        if(recArray != null && recArray.size() > 0 && !mIsLoadingMore) {
+                            mRecLists.clear();
+                        }
+
+                        mBannerLists.clear();
+                        mBannerImgLists.clear();
+
                         for (int i = 0; i < recArray.size(); i++) {
                             JSONObject data = (JSONObject) result.getJSONArray("data").get(i);
                             if(i == 0){
@@ -179,25 +172,22 @@ public class AnimRecFragment extends Fragment {
                                 recomendAnimModel.setCommentCount(""+data.getIntValue("danmaku"));
                                 recomendAnimModel.setContent(data.getString("title"));
                                 recomendAnimModel.setVedioTime(TimeUtils.getTimeStr(data.getIntValue("duration")));
-
                                 mRecLists.add(recomendAnimModel);
                             }
                         }
 
+                        filterUnique(mRecLists,mBannerLists);
+
                         setBannerImgs();
                         if(!mRecLists.isEmpty()){
                             myRecAdapter.notifyDataSetChanged();
-                            mBannerAdapter.notifyDataSetChanged();
-                            Message message = new Message();
-                            message.obj = 1;
-                            message.what = 0x160;
-                            bannerHandler.sendMessageDelayed(message,2500);
-
+                            if(mIsLoadingMore){
+                                mIsLoadingMore = !mIsLoadingMore;
+                            }
                             if(mSwipeLayout.isRefreshing()) {
                                 mSwipeLayout.setRefreshing(false);
                             }
                         }
-                        Toast.makeText(getActivity(), "BANNER", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -206,9 +196,12 @@ public class AnimRecFragment extends Fragment {
         mBannerViewPager.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                //左右滑动的时候取消父容器对banner视图触摸事件的拦截处理
                 mRecRecyclerView.getParent().requestDisallowInterceptTouchEvent(true);
-                return false;
+                if (mSwipeLayout.isRefreshing()) {
+                    return true;
+                } else {
+                    return false;
+                }
             }
         });
         mBannerViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -234,12 +227,10 @@ public class AnimRecFragment extends Fragment {
 
             }
         });
-        // 下拉时触发SwipeRefreshLayout的下拉动画，动画完毕之后就会回调这个方法
         mSwipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 mSwipeLayout.setRefreshing(true);
-                mRecLists.clear();
                 initData();
             }
         });
@@ -254,10 +245,11 @@ public class AnimRecFragment extends Fragment {
                     //获取最后一个可见view的位置
                     lastItemPosition = gridLayoutManager.findLastVisibleItemPosition();
                 }
-                //当不滚动的时候
-                if (newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
-                    //判断是否是最底部
-                    if (lastItemPosition == mRecLists.size()) {
+                if(newState == RecyclerView.SCROLL_STATE_DRAGGING){
+                    int totalItemCount  = layoutManager.getItemCount();
+                    int lastVisibleItem = lastItemPosition;
+                    if(lastVisibleItem >= totalItemCount-1 && !mSwipeLayout.isRefreshing()){
+                        mIsLoadingMore = true;
                         initData();
                     }
                 }
@@ -268,6 +260,39 @@ public class AnimRecFragment extends Fragment {
                 super.onScrolled(recyclerView, dx, dy);
             }
         });
+    }
+
+    private void setBannerImgs() {
+        if(!mBannerLists.isEmpty()){
+            if(mDotsLayout!= null && mDotsLayout.getChildCount() > 0){
+                mDotsLayout.removeAllViews();
+            }
+            for (int i=0;i<mBannerLists.size();i++) {
+                RecBanner recBanner = mBannerLists.get(i);
+                SimpleDraweeView draweeView = new SimpleDraweeView(getContext());
+                draweeView.setImageURI( recBanner.getImgUrl());
+                mBannerImgLists.add(draweeView);
+                ImageView imageView = new ImageView(getContext());
+                if(i == 0) {
+                    imageView.setImageResource(R.drawable.banner_selected_shape);
+                }else{
+                    imageView.setImageResource(R.drawable.banner_inditor_shape);
+                }
+                imageView.setPadding(5,0,5,0);
+                mDotsLayout.addView(imageView);
+            }
+            Message message = new Message();
+            message.obj = 1;
+            message.what = 0x160;
+            bannerHandler.sendMessageDelayed(message,2500);
+        }
+    }
+
+    private void filterUnique(List<RecomendAnimModel> mRecLists, List<RecBanner> mBannerLists) {
+        //去重并且按照自然顺序排列
+        mRecLists = new ArrayList(new TreeSet(mRecLists));
+        mBannerLists = new ArrayList(new TreeSet(mBannerLists));
+
     }
 
     public static Fragment getInstance() {
