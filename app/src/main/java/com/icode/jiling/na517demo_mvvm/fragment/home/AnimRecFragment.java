@@ -144,7 +144,7 @@ public class AnimRecFragment extends Fragment {
                         JSONObject result = (JSONObject) JSON.parse(response);
                         JSONArray recArray = result.getJSONArray("data");
 
-                        if(recArray != null && recArray.size() > 0 && !mIsLoadingMore) {
+                        if(recArray != null && recArray.size() > 0 && mSwipeLayout.isRefreshing()) {
                             mRecLists.clear();
                         }
 
@@ -197,7 +197,7 @@ public class AnimRecFragment extends Fragment {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 mRecRecyclerView.getParent().requestDisallowInterceptTouchEvent(true);
-                if (mSwipeLayout.isRefreshing()) {
+                if (mSwipeLayout.isRefreshing()  || mIsLoadingMore) {
                     return true;
                 } else {
                     return false;
